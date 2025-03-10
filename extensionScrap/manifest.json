@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Auto Pagination Scraper",
+  "version": "1.0",
+  "description": "Automatise la navigation entre les pages",
+  "permissions": ["scripting", "activeTab"],
+  "host_permissions": ["<all_urls>"], 
+  
+  "action": {
+    "default_popup": "extension.html",
+    "default_icon": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["extension.js"]
+    }
+  ]
+}
