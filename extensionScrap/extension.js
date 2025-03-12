@@ -5,6 +5,8 @@ async function scrapePageData() {
 
     const rows = document.querySelectorAll('table tbody tr'); // Sélectionne les lignes du tableau
 
+
+    //boucler sur chaque ligne row pour recup son index 
     rows.forEach((row, rowIndex) => {
         const cells = row.querySelectorAll('td'); // Sélectionne les cellules de chaque ligne
 
@@ -17,16 +19,18 @@ async function scrapePageData() {
         if (cells.length < 11) return;
 
         let data = {
-            price: cells[0]?.innerText.replace(/Buy/g, '').trim() || "N/A",
-            media: cells[1]?.querySelector('a')?.innerText.trim() || "N/A", // Correction pour extraire correctement le media
-            domainRating: cells[2]?.innerText.trim() || "N/A",
+            //cellBuy: cells[0]?.innerText.trim() || "DEBUG // 1 ",
+            price: cells[1]?.innerText.replace(/Buy/g, '').trim() || "N/A",
             domainAuthority: cells[2]?.innerText.trim() || "N/A",
-            authorityScore: cells[3]?.innerText.trim() || "N/A",
-            organicTraffic: cells[4]?.innerText.trim() || "N/A",
-            categories: cells[5]?.innerText.replace(/\n/g, ' | ').trim() || "N/A",
-            language: cells[6]?.innerText.replace(/\n/g, ' | ').trim() || "N/A",
-            referringDomains: cells[7]?.innerText.trim() || "N/A",
-            spamScore: cells[8]?.innerText.trim() || "N/A", // Correction de la colonne Spam Score
+            media: cells[3]?.querySelector('p')?.innerText.trim() || "N/A", // Correction pour extraire correctement le media
+            domainRating: cells[4]?.innerText.trim() || "N/A",
+            authorityScore: cells[5]?.innerText.trim() || "N/A",
+            organicTraffic: cells[6]?.innerText.trim() || "N/A",
+            categories: cells[7]?.innerText.replace(/\n/g, ' | ').trim() || "N/A",
+            country: cells[8]?.querySelector('div[class*="me-"] svg')?.outerHTML || "N/A",
+            language: cells[9]?.innerText.replace(/\n/g, ' | ').trim() || "N/A",
+            referringDomains: cells[10]?.innerText.trim() || "N/A",
+            spamScore: cells[11]?.innerText.trim() || "N/A", // Correction de la colonne Spam Score
         };
 
         scrapedData.push(data); // Ajoute les données à la liste
@@ -36,6 +40,8 @@ async function scrapePageData() {
 }
 
 async function waitForTableUpdate() {
+
+    //return la promise pour attendre l'event 
     return new Promise((resolve) => {
         const tableContainer = document.querySelector('table tbody'); // Observe le tbody du tableau
         if (!tableContainer) {
@@ -43,7 +49,8 @@ async function waitForTableUpdate() {
             resolve();
             return;
         }
-
+        
+        //detection des modifs dans le DOM 
         const observer = new MutationObserver((mutationsList, observer) => {
             for (let mutation of mutationsList) {
                 if (mutation.type === 'childList') {
@@ -55,6 +62,8 @@ async function waitForTableUpdate() {
             }
         });
 
+
+
         observer.observe(tableContainer, { childList: true, subtree: true });
 
         setTimeout(() => {
@@ -65,6 +74,8 @@ async function waitForTableUpdate() {
     });
 }
 
+
+//detecte cb de page existent INTO parcourt chaque page  - click suivant - attend le load - extrait la data 
 async function paginate() {
     console.log("Début de l'automatisation...");
 
@@ -93,6 +104,8 @@ async function paginate() {
     console.log("Fin de la pagination. Génération du JSON...");
     generateJSON();
 }
+
+
 
 function generateJSON() {
     const jsonData = JSON.stringify(scrapedData, null, 2);
