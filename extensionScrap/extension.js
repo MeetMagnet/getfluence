@@ -5,24 +5,15 @@ async function scrapePageData() {
 
     const rows = document.querySelectorAll('table tbody tr'); // Sélectionne les lignes du tableau
 
-
-    //boucler sur chaque ligne row pour recup son index 
     rows.forEach((row, rowIndex) => {
         const cells = row.querySelectorAll('td'); // Sélectionne les cellules de chaque ligne
 
-        console.log(`Ligne ${rowIndex + 1} - Nombre de cellules trouvées :`, cells.length);
-        cells.forEach((cell, index) => {
-            console.log(`Cellule ${index}:`, cell.innerText.trim());
-        });
-
-        // Vérifie que le nombre de cellules est suffisant pour éviter les décalages
-        if (cells.length < 11) return;
+        if (cells.length < 11) return; // Vérifie que le nombre de cellules est suffisant
 
         let data = {
-            //cellBuy: cells[0]?.innerText.trim() || "DEBUG // 1 ",
             price: cells[1]?.innerText.replace(/Buy/g, '').trim() || "N/A",
             domainAuthority: cells[2]?.innerText.trim() || "N/A",
-            media: cells[3]?.querySelector('p')?.innerText.trim() || "N/A", // Correction pour extraire correctement le media
+            media: cells[3]?.querySelector('p')?.innerText.trim() || "N/A",
             domainRating: cells[4]?.innerText.trim() || "N/A",
             authorityScore: cells[5]?.innerText.trim() || "N/A",
             organicTraffic: cells[6]?.innerText.trim() || "N/A",
@@ -30,27 +21,24 @@ async function scrapePageData() {
             country: cells[8]?.querySelector('div[class*="me-"] svg')?.outerHTML || "N/A",
             language: cells[9]?.innerText.replace(/\n/g, ' | ').trim() || "N/A",
             referringDomains: cells[10]?.innerText.trim() || "N/A",
-            spamScore: cells[11]?.innerText.trim() || "N/A", // Correction de la colonne Spam Score
+            spamScore: cells[11]?.innerText.trim() || "N/A",
         };
 
-        scrapedData.push(data); // Ajoute les données à la liste
+        scrapedData.push(data);
     });
 
     console.log(`Données extraites : ${scrapedData.length} entrées.`);
 }
 
 async function waitForTableUpdate() {
-
-    //return la promise pour attendre l'event 
     return new Promise((resolve) => {
-        const tableContainer = document.querySelector('table tbody'); // Observe le tbody du tableau
+        const tableContainer = document.querySelector('table tbody');
         if (!tableContainer) {
             console.log("Tableau introuvable, résolution immédiate.");
             resolve();
             return;
         }
         
-        //detection des modifs dans le DOM 
         const observer = new MutationObserver((mutationsList, observer) => {
             for (let mutation of mutationsList) {
                 if (mutation.type === 'childList') {
@@ -62,8 +50,6 @@ async function waitForTableUpdate() {
             }
         });
 
-
-
         observer.observe(tableContainer, { childList: true, subtree: true });
 
         setTimeout(() => {
@@ -74,9 +60,9 @@ async function waitForTableUpdate() {
     });
 }
 
-
-//detecte cb de page existent INTO parcourt chaque page  - click suivant - attend le load - extrait la data 
 async function paginate() {
+    let pageScrapped = 0; // Compteur de pages scrappées
+
     console.log("Début de l'automatisation...");
 
     let pages = document.querySelectorAll("button.mantine-Pagination-control");
@@ -99,13 +85,22 @@ async function paginate() {
 
         console.log(`Page ${i} chargée. Scraping...`);
         await scrapePageData();
+
+        pageScrapped++; // Incrémente le compteur de pages
+
+        if (pageScrapped % 100 === 0) { 
+            console.log("10 pages atteintes, génération du JSON...");
+            generateJSON();
+            scrapedData = []; // Vide les données après la sauvegarde
+        }
     }
 
-    console.log("Fin de la pagination. Génération du JSON...");
-    generateJSON();
+    // Générer un dernier JSON pour les pages restantes
+    if (scrapedData.length > 0) {
+        console.log("Fin de la pagination. Génération du dernier JSON...");
+        generateJSON();
+    }
 }
-
-
 
 function generateJSON() {
     const jsonData = JSON.stringify(scrapedData, null, 2);
