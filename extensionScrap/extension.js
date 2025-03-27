@@ -89,7 +89,7 @@ async function paginate() {
         pageScrapped++; // Incrémente le compteur de pages
 
         if (pageScrapped % 100 === 0) { 
-            console.log("10 pages atteintes, génération du JSON...");
+            console.log("100 pages atteintes, génération du JSON...");
             generateJSON();
             scrapedData = []; // Vide les données après la sauvegarde
         }
