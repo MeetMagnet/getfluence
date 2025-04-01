@@ -3,6 +3,15 @@ let scrapedData = []; // Stocke toutes les données récupérées
 async function scrapePageData() {
     console.log("Scraping en cours...");
 
+    let attempts = 0; 
+    while (document.querySelectorAll('table tbody tr')[0]?.querySelectorAll('td').length < 11 && attempts < 10) {
+        console.log("En attente du chargement des données...");
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        attempts++;
+    }
+
+
+
     const rows = document.querySelectorAll('table tbody tr'); // Sélectionne les lignes du tableau
 
     rows.forEach((row, rowIndex) => {
@@ -69,7 +78,8 @@ async function paginate() {
     let lastPage = parseInt(pages[pages.length - 2]?.textContent.trim()) || 1;
     console.log("Nombre total de pages :", lastPage);
 
-    for (let i = 2; i <= lastPage; i++) {
+    let startPage = 400
+    for (let i = startPage; i <= lastPage; i++) {
         let pageButton = [...document.querySelectorAll("button.mantine-Pagination-control")].find(b => b.textContent.trim() == i);
 
         if (!pageButton) {
