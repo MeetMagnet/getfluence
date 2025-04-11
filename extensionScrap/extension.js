@@ -70,16 +70,21 @@ async function waitForTableUpdate() {
 }
 
 async function waitForPaginationButtons(pageNumber) {
-    let attempts = 0;
-    while (attempts < 10) {
-        let buttons = document.querySelectorAll("button.mantine-Pagination-control");
-        let found = [...buttons].some(b => b.textContent.trim() == pageNumber);
-        if (found) return;
-        console.log(`Attente du bouton de la page ${pageNumber}...`);
-        await new Promise(res => setTimeout(res, 1000));
-        attempts++;
-    }
-    console.log(`Page ${pageNumber} introuvable après attente.`);
+  let attempts = 0;
+  while (attempts < 15) {
+      let buttons = [...document.querySelectorAll("button.mantine-Pagination-control")];
+      let btn = buttons.find(b => b.textContent.trim() == pageNumber);
+
+      if (btn && btn.offsetParent !== null && !btn.disabled) {
+          return; // bouton trouvé, visible et cliquable
+      }
+
+      console.log(`Attente du bouton visible pour la page ${pageNumber}...`);
+      await new Promise(res => setTimeout(res, 1000));
+      attempts++;
+  }
+
+  console.log(`Page ${pageNumber} introuvable ou bouton non cliquable après attente.`);
 }
 
 
@@ -93,7 +98,7 @@ async function paginate() {
     let lastPage = parseInt(pages[pages.length - 2]?.textContent.trim()) || 1;
     console.log("Nombre total de pages :", lastPage);
 
-    let startPage = 400
+    let startPage = 1
     for (let i = startPage; i <= lastPage; i++) {
         await waitForPaginationButtons(i);
         let pageButton = [...document.querySelectorAll("button.mantine-Pagination-control")].find(b => b.textContent.trim() == i);
